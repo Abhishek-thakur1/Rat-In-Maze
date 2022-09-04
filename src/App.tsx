@@ -1,5 +1,5 @@
 import React from 'react';
-import Canvas from './canvas';
+import Canvas from './component/Maze/canvas';
 import './App.css';
 
 function App() {
