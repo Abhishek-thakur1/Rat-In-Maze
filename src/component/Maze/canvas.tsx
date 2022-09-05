@@ -10,7 +10,7 @@ const Canvas = () => {
         const canvas = maze.current;
         let ctx = (canvas as unknown as HTMLCanvasElement).getContext("2d");
 
-        canvas_Render(ctx);
+        canvas_Render(ctx, canvas);
         
     },[])
 
