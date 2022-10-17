@@ -1,13 +1,14 @@
 import { MutableRefObject } from "react";
+import { Stack } from './Stack'
 
 let current: any;
-let generationComplete:boolean = false;
+let generationComplete: boolean = false;
 export class Maze {
     size: number;
     rows: number;
     columns: number;
     grid: any[];
-    stack: any[];
+    stack: Stack<any>;
     current: any;
 
     constructor(size: number, rows: number, columns: number) {
@@ -15,7 +16,7 @@ export class Maze {
         this.rows = rows;
         this.columns = columns;
         this.grid = [];
-        this.stack = [];
+        this.stack = new Stack<string>();
     }
 
     //@setup() -> setup Grid on the canvas and draw each individual cell
@@ -29,10 +30,9 @@ export class Maze {
             this.grid.push(row);
         }
         current = this.grid[0][0];
-    }
+    } 
 
-    // Draw the canvas by setting the size and placing the cells in the grid array on the canvas.
-    draw(ctx: CanvasRenderingContext2D, maze: any) {
+    draw_utils(ctx: CanvasRenderingContext2D, maze: any) {
         maze.width = this.size;
         maze.height = this.size;
         maze.style.background = "black";
@@ -46,9 +46,9 @@ export class Maze {
             }
         }
 
-        // This function will assign the variable 'next' to random cell out of the current cells available neighbouting cells
+        // This function will assign the variable 'next' to random cell out of the current cells available neighboring cells
         let next = current.checkNeighbours();
-        // If there is a non visited neighbour cell
+        // If there is a non visited neighbor cell
         if (next) {
             next.visited = true;
             // Add the current cell to the stack for backtracking
@@ -67,21 +67,39 @@ export class Maze {
             current = cell;
             current.highlight(this.columns, ctx);
         }
-        // If no more items in the stack then all cells have been visted and the function can be exited
+        // If no more items in the stack then all cells have been visited and the function can be exited
         if (this.stack.length === 0) {
             generationComplete = true;
             return;
         }
 
         // Recursively call the draw function. This will be called up until the stack is empty
-        // window.requestAnimationFrame(() => {
-        //     this.draw(ctx, maze);
-        // });
         window.requestAnimationFrame(() => {
-            setTimeout(() => {
-                this.draw(ctx, maze);
-            }, 10);
+            this.draw_utils(ctx, maze);
         });
+        // window.requestAnimationFrame(() => {
+        //     setTimeout(() => {
+        //         this.draw(ctx, maze);
+        //     }, 10);
+        // });
+
+        // callback()
+    
+    }
+
+    // Draw the canvas by setting the size and placing the cells in the grid array on the canvas.
+
+    draw(ctx: CanvasRenderingContext2D, maze: any): Promise<any> {
+        return new Promise<any>((_resolve, _reject): void => { 
+            _resolve(this.draw_utils(ctx, maze));
+        })
+    }
+
+    traverse() {
+        // while (true) {
+        //     current = this.stack.top();
+        // }
+        console.log('Callback! Successful...')
     }
 }
 
@@ -119,8 +137,8 @@ export class Cell {
         let col = this.colNum;
         let neighbours = [];
 
-        // The following lines push all available neighbours to the neighbours array
-        // undefined is returned where the index is out of bounds (edge cases)
+        // The following lines push all available neighbors to the neighbors array
+        // undefined is returned where the index is out of bounds (...edge cases)
         let top = row !== 0 ? grid[row - 1][col] : undefined;
         let right = col !== grid.length - 1 ? grid[row][col + 1] : undefined;
         let bottom = row !== grid.length - 1 ? grid[row + 1][col] : undefined;
@@ -146,7 +164,7 @@ export class Cell {
     drawTopWall(x: number, y: number, size: number, columns: number, rows: number, ctx: CanvasRenderingContext2D): void {
         ctx.beginPath();
         ctx.moveTo(x, y);
-        ctx.lineTo(x+size/columns, y);
+        ctx.lineTo(x + size / columns, y);
         ctx.stroke();
     }
 
@@ -176,7 +194,7 @@ export class Cell {
         // Additions and subtractions added so the highlighted cell does cover the walls
         let x = (this.colNum * this.parentSize) / columns + 1;
         let y = (this.rowNum * this.parentSize) / columns + 1;
-        ctx.fillStyle = "purple";
+        ctx.fillStyle = "blue";
         ctx.fillRect(
             x,
             y,
@@ -185,7 +203,7 @@ export class Cell {
         );
     }
 
-    removeWalls(cell1:any, cell2:any) {
+    removeWalls(cell1: any, cell2: any) {
         // compares to two cells on x axis
         let x = cell1.colNum - cell2.colNum;
         // Removes the relevant walls if there is a different on x axis
@@ -198,7 +216,7 @@ export class Cell {
         }
         // compares to two cells on x axis
         let y = cell1.rowNum - cell2.rowNum;
-        // Removes the relevant walls if there is a different on x axis
+        // Removes the relevant walls if there is a different on y axis
         if (y === 1) {
             cell1.walls.topWall = false;
             cell2.walls.bottomWall = false;
@@ -224,9 +242,9 @@ export class Cell {
         if (this.visited) {
             ctx.fillRect(x + 1, y + 1, size / columns - 2, size / rows - 2);
         }
-        // if (this.goal) {
-        //     ctx.fillStyle = "rgb(83, 247, 43)";
-        //     ctx.fillRect(x + 1, y + 1, size / columns - 2, size / rows - 2);
-        // }
+        if (this.goal) {
+            ctx.fillStyle = "rgb(83, 247, 43)";
+            ctx.fillRect(x + 1, y + 1, size / columns - 2, size / rows - 2);
+        }
     }
 }
