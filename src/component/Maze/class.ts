@@ -157,21 +157,61 @@ export class Maze {
         // });
         step()
     }
+  MakingGrid,
+  FindingPath,
+  Rest,
+}
 
-    // Draw the canvas by setting the size and placing the cells in the grid array on the canvas.
+class Rat {
+  private readonly grid: Cell[][];
+  private currentCell: Cell;
+  private visitedCells: Set<Cell> = new Set();
+  private cellStack: Stack<Cell> = new Stack();
+  private path: Cell[] = [];
 
-    draw(ctx: CanvasRenderingContext2D, maze: HTMLCanvasElement): Promise<any> {
-        return new Promise<any>((_resolve, _reject): void => {
-            _resolve(this.draw_utils(ctx, maze));
-        });
+  constructor(grid: Cell[][]) {
+    this.grid = grid;
+    this.currentCell = this.grid[0][0];
+    this.cellStack.push(this.currentCell);
+  }
+
+  showGrid(ctx: CanvasRenderingContext2D) {
+    const rows = this.grid.length;
+    const cols = this.grid[0].length;
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        this.grid[r][c].show(600, rows, cols, ctx);
+      }
+    }
+  }
+
+  step() {
+    this.path.push(this.currentCell)
+    const n = this.grid.length;
+
+    if (this.currentCell === this.grid[n - 1][n - 1]) {
+      return;
     }
 
-    traverse() {
-        // while (true) {
-        //     current = this.stack.top();
-        // }
-        console.log("Callback! Successful...");
-    }
+    const nextCell = this.cellStack.pop();
+    if (!nextCell) return;
+
+    this.currentCell = nextCell;
+
+    this.visitedCells.add(this.currentCell);
+    const unvisitedNeighbors = this.currentCell.neighbors.filter(
+      (cell) => !this.visitedCells.has(cell)
+    );
+    this.cellStack.push(...unvisitedNeighbors);
+  }
+
+  draw(ctx: CanvasRenderingContext2D) {
+    this.showGrid(ctx);
+    this.currentCell.highlight(this.grid[0].length, ctx);
+    this.path.forEach(cell => {
+      cell.highlight(this.grid[0].length, ctx, '#1289A7')
+    })
+  }
 }
 
 export class Cell {
@@ -270,6 +310,13 @@ export class Cell {
         ctx.lineTo(x + size / columns, y);
         ctx.stroke();
     }
+    current = this.grid[0][0];
+  }
+
+  renderPathFind(ctx: CanvasRenderingContext2D, maze: HTMLCanvasElement) {
+    this.rat.step();
+    this.rat.draw(ctx);
+  }
 
     drawRightWall(
         x: number,
@@ -298,6 +345,7 @@ export class Cell {
         ctx.lineTo(x + size / columns, y + size / rows);
         ctx.stroke();
     }
+  }
 
     drawLeftWall(
         x: number,
@@ -330,29 +378,119 @@ export class Cell {
             this.parentSize / columns - 6
         );
     }
+  }
 
-    removeWalls(cell1: any, cell2: any) {
-        // compares to two cells on x axis
-        let x = cell1.colNum - cell2.colNum;
-        // Removes the relevant walls if there is a different on x axis
-        if (x === 1) {
-            cell1.walls.leftWall = false;
-            cell2.walls.rightWall = false;
-        } else if (x === -1) {
-            cell1.walls.rightWall = false;
-            cell2.walls.leftWall = false;
-        }
-        // compares to two cells on x axis
-        let y = cell1.rowNum - cell2.rowNum;
-        // Removes the relevant walls if there is a different on y axis
-        if (y === 1) {
-            cell1.walls.topWall = false;
-            cell2.walls.bottomWall = false;
-        } else if (y === -1) {
-            cell1.walls.bottomWall = false;
-            cell2.walls.topWall = false;
-        }
+  //Wall drawing functions for each cell. Will be called if relevant wall is set to true in cell constructor
+  drawTopWall(
+    x: number,
+    y: number,
+    size: number,
+    columns: number,
+    rows: number,
+    ctx: CanvasRenderingContext2D
+  ): void {
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + size / columns, y);
+    ctx.stroke();
+  }
+
+  drawRightWall(
+    x: number,
+    y: number,
+    size: number,
+    columns: number,
+    rows: number,
+    ctx: CanvasRenderingContext2D
+  ): void {
+    ctx.beginPath();
+    ctx.moveTo(x + size / columns, y);
+    ctx.lineTo(x + size / columns, y + size / rows);
+    ctx.stroke();
+  }
+
+  drawBottomWall(
+    x: number,
+    y: number,
+    size: number,
+    columns: number,
+    rows: number,
+    ctx: CanvasRenderingContext2D
+  ): void {
+    ctx.beginPath();
+    ctx.moveTo(x, y + size / rows);
+    ctx.lineTo(x + size / columns, y + size / rows);
+    ctx.stroke();
+  }
+
+  drawLeftWall(
+    x: number,
+    y: number,
+    size: number,
+    columns: number,
+    rows: number,
+    ctx: CanvasRenderingContext2D
+  ): void {
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x, y + size / rows);
+    ctx.stroke();
+  }
+
+  /**
+   * @param columns Total number of columns in grid
+   * @param ctx The canvas ctx
+   */
+  // Highlights the current cell on the grid. Columns is once again passed in to set the size of the grid.
+  highlight(columns: number, ctx: CanvasRenderingContext2D, color: string = 'blue') {
+    // Additions and subtractions added so the highlighted cell does cover the walls
+    let x = (this.colNum * this.parentSize) / columns + 1;
+    let y = (this.rowNum * this.parentSize) / columns + 1;
+    ctx.fillStyle = color;
+    ctx.fillRect(
+      x,
+      y,
+      this.parentSize / columns - 3,
+      this.parentSize / columns - 3
+    );
+  }
+
+  removeWalls(cell1: any, cell2: any) {
+    // compares to two cells on x axis
+    let x = cell1.colNum - cell2.colNum;
+    // Removes the relevant walls if there is a different on x axis
+    if (x === 1) {
+      cell1.walls.leftWall = false;
+      cell2.walls.rightWall = false;
+    } else if (x === -1) {
+      cell1.walls.rightWall = false;
+      cell2.walls.leftWall = false;
     }
+    // compares to two cells on x axis
+    let y = cell1.rowNum - cell2.rowNum;
+    // Removes the relevant walls if there is a different on y axis
+    if (y === 1) {
+      cell1.walls.topWall = false;
+      cell2.walls.bottomWall = false;
+    } else if (y === -1) {
+      cell1.walls.bottomWall = false;
+      cell2.walls.topWall = false;
+    }
+  }
+
+  // Draws each of the cells on the maze canvas
+  show(
+    size: number,
+    rows: number,
+    columns: number,
+    ctx: CanvasRenderingContext2D
+  ): void {
+    let x = (this.colNum * size) / columns;
+    let y = (this.rowNum * size) / rows;
+
+    ctx.strokeStyle = "#ffffff";
+    ctx.fillStyle = "black";
+    ctx.lineWidth = 2;
 
     // Draws each of the cells on the maze canvas
     show(
