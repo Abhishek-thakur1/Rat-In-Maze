@@ -1,7 +1,8 @@
-import React from 'react'
+import Canvas from '@/component/canvas/canvas';
+import React from 'react';
 
 export default function DFS() {
-    return (
-        <div>DFS</div>
-    )
+    return <div>
+        <Canvas />
+    </div>;
 }
