@@ -3,6 +3,7 @@ import { Cell } from './cell';
 import { MazeGenerator } from './mazeGeneratorDFS';
 import { State } from '@/types/types';
 import { Rat } from '@/component/pathfinding/dfs/ratDFS';
+import gsap from 'gsap';
 
 export class Maze {
   size: number;

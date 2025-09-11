@@ -9,7 +9,7 @@ export class MazeGenerator {
   private readonly size: number;
   private readonly rows: number;
   private readonly columns: number;
-
+  public steps: { cell: Cell; action: 'visit' | 'backtrack' }[] = [];
   constructor(grid: Cell[][], size: number, rows: number, columns: number) {
     this.grid = grid;
     this.size = size;
@@ -22,6 +22,7 @@ export class MazeGenerator {
   renderMakeGrid(ctx: CanvasRenderingContext2D, maze: HTMLCanvasElement): State {
     // Set the first cell as visited
     this.current.visited = true;
+    this.steps.push({ cell: this.current, action: 'visit' });
 
     // Loop through the 2d grid array and call the show method for each cell instance
     for (let r = 0; r < this.rows; r++) {
@@ -33,6 +34,8 @@ export class MazeGenerator {
 
     // This function will assign the variable 'next' to random cell out of the current cells available neighboring cells
     let next = this.current.checkNeighbours();
+    // this.current.show(this.size, this.rows, this.columns, ctx); // draw only current cell
+    // if (next) next.show(this.size, this.rows, this.columns, ctx);
 
     // If there is a non visited neighbor cell
     if (next) {
@@ -51,6 +54,7 @@ export class MazeGenerator {
     } else if (this.stack.length > 0) {
       let cell = this.stack.pop();
       this.current = cell;
+      this.steps.push({ cell, action: 'backtrack' });
       this.current.highlight(this.columns, ctx);
     }
 

@@ -1,7 +1,7 @@
 import { Maze } from '../maze-generation/dfs/maze';
 
 export const canvas_Render = (ctx: CanvasRenderingContext2D, mazeCanvas: HTMLCanvasElement) => {
-  let newMaze = new Maze(600, 12, 12);
-  newMaze.draw(ctx, mazeCanvas).then(newMaze.traverse);
+  let newMaze = new Maze(600, 15, 15);
+  newMaze.draw(ctx, mazeCanvas).then(() => newMaze.traverse());
   console.log(newMaze);
 };

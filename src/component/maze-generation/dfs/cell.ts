@@ -133,12 +133,75 @@ export class Cell {
    * @param ctx The canvas ctx
    */
   // Highlights the current cell on the grid. Columns is once again passed in to set the size of the grid.
-  highlight(columns: number, ctx: CanvasRenderingContext2D, color: string = 'blue') {
-    // Additions and subtractions added so the highlighted cell does cover the walls
-    let x = (this.colNum * this.parentSize) / columns + 1;
-    let y = (this.rowNum * this.parentSize) / columns + 1;
-    ctx.fillStyle = color;
-    ctx.fillRect(x, y, this.parentSize / columns - 3, this.parentSize / columns - 3);
+  // highlight(columns: number, ctx: CanvasRenderingContext2D, color: string = 'blue') {
+  //   // Additions and subtractions added so the highlighted cell does cover the walls
+  //   let x = (this.colNum * this.parentSize) / columns + 1;
+  //   let y = (this.rowNum * this.parentSize) / columns + 1;
+  //   ctx.fillStyle = color;
+  //   ctx.fillRect(x, y, this.parentSize / columns - 3, this.parentSize / columns - 3);
+  // }
+
+  highlight(
+    cols: number,
+    ctx: CanvasRenderingContext2D,
+    color = 'red',
+    mode: 'fill' | 'circle' | 'trail' = 'fill',
+  ) {
+    const w = ctx.canvas.width / cols;
+    const x = this.colNum * w;
+    const y = this.rowNum * w;
+
+    if (mode === 'fill') {
+      ctx.fillStyle = color;
+      ctx.fillRect(x, y, w, w);
+    } else if (mode === 'circle') {
+      ctx.beginPath();
+      ctx.fillStyle = color;
+      ctx.arc(x + w / 2, y + w / 2, w * 0.1, 0, Math.PI * 2); // radius = 30% of cell
+      ctx.fill();
+    } else if (mode === 'trail') {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = w * 0.3; // thickness of the trail
+      ctx.lineCap = 'round'; // smooth line ends
+      ctx.lineJoin = 'round'; // smooth corners
+      ctx.beginPath();
+
+      const cx = x + w / 2;
+      const cy = y + w / 2;
+
+      if ((this as any).prevCell) {
+        const prev = (this as any).prevCell as Cell;
+        const px = prev.colNum * w + w / 2;
+        const py = prev.rowNum * w + w / 2;
+
+        // shared wall midpoint
+        let mx = cx;
+        let my = cy;
+
+        if (prev.colNum < this.colNum) {
+          mx = x;
+          my = cy; // came from left
+        } else if (prev.colNum > this.colNum) {
+          mx = x + w;
+          my = cy; // came from right
+        } else if (prev.rowNum < this.rowNum) {
+          mx = cx;
+          my = y; // came from top
+        } else if (prev.rowNum > this.rowNum) {
+          mx = cx;
+          my = y + w; // came from bottom
+        }
+
+        // 2-step path: prev → midpoint → current
+        ctx.moveTo(px, py);
+        ctx.lineTo(mx, my);
+        ctx.lineTo(cx, cy);
+      } else {
+        ctx.moveTo(cx, cy); // starting point
+      }
+
+      ctx.stroke();
+    }
   }
 
   removeWalls(cell1: any, cell2: any) {

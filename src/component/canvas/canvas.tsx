@@ -6,7 +6,14 @@ const Canvas = () => {
 
   useEffect(() => {
     const canvas = maze.current;
-    let ctx = (canvas as unknown as HTMLCanvasElement).getContext('2d');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Set size once, avoid resetting every frame
+    canvas.width = 600; // you can make this dynamic
+    canvas.height = 600;
+    canvas.style.background = 'black';
 
     canvas_Render(ctx, canvas);
   }, []);
