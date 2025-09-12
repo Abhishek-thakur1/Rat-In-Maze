@@ -54,12 +54,17 @@ export class Rat {
   //       cell.highlight(this.grid[0].length, ctx, '#70863eff');
   //     });
   //   }
+  public pathfindingTime: number = 0;
+  private startTime: number = performance.now();
 
   step() {
     this.path.push(this.currentCell);
     const n = this.grid.length;
 
     if (this.currentCell === this.grid[n - 1][n - 1]) {
+      if (this.pathfindingTime === 0) {
+        this.pathfindingTime = performance.now() - this.startTime;
+      }
       return;
     }
 

@@ -19,6 +19,9 @@ export class MazeGenerator {
     this.current = this.grid[0][0];
   }
 
+  public generationTime: number = 0;
+  private startTime: number = performance.now();
+
   renderMakeGrid(ctx: CanvasRenderingContext2D, maze: HTMLCanvasElement): State {
     // Set the first cell as visited
     this.current.visited = true;
@@ -60,7 +63,10 @@ export class MazeGenerator {
 
     // If no more items in the stack then all cells have been visited and the function can be exited
     if (this.stack.length === 0) {
+      this.generationTime = performance.now() - this.startTime;
       return State.FindingPath;
+    }
+    if (this.generationTime === 0 && this.stack.length === 0) {
     }
 
     return State.MakingGrid;

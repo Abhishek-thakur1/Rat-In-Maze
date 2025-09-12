@@ -26,7 +26,13 @@ export class Maze {
     this.rat = new Rat(this.grid);
     this.mazeGenerator = new MazeGenerator(this.grid, size, rows, columns);
   }
+  get generationTime(): number {
+    return this.mazeGenerator.generationTime;
+  }
 
+  get pathfindingTime(): number {
+    return this.rat.pathfindingTime;
+  }
   //@setup() -> setup Grid on the canvas and draw each individual cell
   initGrid() {
     for (let r = 0; r < this.rows; r++) {

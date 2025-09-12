@@ -244,4 +244,32 @@ export class Cell {
       ctx.fillRect(x + 1, y + 1, size / columns - 2, size / rows - 2);
     }
   }
+  hasWallBetween(other: Cell): boolean {
+    if (this.rowNum === other.rowNum) {
+      if (this.colNum === other.colNum + 1) return this.walls.leftWall || other.walls.rightWall;
+      if (this.colNum === other.colNum - 1) return this.walls.rightWall || other.walls.leftWall;
+    }
+    if (this.colNum === other.colNum) {
+      if (this.rowNum === other.rowNum + 1) return this.walls.topWall || other.walls.bottomWall;
+      if (this.rowNum === other.rowNum - 1) return this.walls.bottomWall || other.walls.topWall;
+    }
+    return true; // not neighbors
+  }
+  highlightTrail(cols: number, ctx: CanvasRenderingContext2D, prev?: Cell, color = 'green') {
+    const w = ctx.canvas.width / cols;
+    const cx = this.colNum * w + w / 2;
+    const cy = this.rowNum * w + w / 2;
+
+    ctx.strokeStyle = color;
+    ctx.lineWidth = w * 0.3;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    if (prev) {
+      ctx.lineTo(cx, cy); // extend line from previous cell
+    } else {
+      ctx.beginPath();
+      ctx.moveTo(cx, cy); // start at the first cell
+    }
+  }
 }
